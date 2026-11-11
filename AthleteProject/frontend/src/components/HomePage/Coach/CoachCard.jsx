@@ -30,6 +30,10 @@ export default function CoachCard({ coach, index, isActive, cardRef }) {
                 alt={coach.name}
                 loading="lazy"
                 draggable={false}
+                onError={(e) => {
+                    e.target.src =
+                        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=85";
+                }}
                 className="absolute inset-0 h-full w-full object-cover
           grayscale-[35%] transition-all duration-700
           group-hover:scale-105 group-hover:grayscale-0"

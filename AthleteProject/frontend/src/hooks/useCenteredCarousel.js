@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent } from "framer-motion";
 
-export default function useCenteredCarousel(initialIndex = 0) {
+export default function useCenteredCarousel(initialIndex = 0, itemCount) {
     const viewportRef = useRef(null); // visible, overflow-hidden window
     const trackRef = useRef(null); // the draggable row
     const cardRefs = useRef([]);
@@ -23,7 +23,8 @@ export default function useCenteredCarousel(initialIndex = 0) {
         let closest = 0;
         let minDistance = Infinity;
 
-        cardRefs.current.forEach((card, i) => {
+        const cards = cardRefs.current.slice(0, itemCount || cardRefs.current.length);
+        cards.forEach((card, i) => {
             if (!card) return;
             const r = card.getBoundingClientRect();
             const distance = Math.abs(r.left + r.width / 2 - viewportCenter);
@@ -34,7 +35,7 @@ export default function useCenteredCarousel(initialIndex = 0) {
         });
 
         setActiveIndex((prev) => (prev === closest ? prev : closest));
-    }, []);
+    }, [itemCount]);
 
     // Recompute while dragging (and during any programmatic x change)
     useMotionValueEvent(x, "change", updateActiveCard);
@@ -47,7 +48,7 @@ export default function useCenteredCarousel(initialIndex = 0) {
         if (!viewport || !track) return;
 
         const measure = () => {
-            const cards = cardRefs.current.filter(Boolean);
+            const cards = cardRefs.current.slice(0, itemCount || cardRefs.current.length).filter(Boolean);
             if (!cards.length) return;
 
             const half = viewport.clientWidth / 2;
@@ -59,7 +60,9 @@ export default function useCenteredCarousel(initialIndex = 0) {
 
             if (!hasPositioned.current) {
                 hasPositioned.current = true;
-                const start = half - centerOf(cards[initialIndex]);
+                const targetIdx = Math.min(initialIndex, cards.length - 1);
+                const targetCard = cards[Math.max(0, targetIdx)] || cards[0];
+                const start = half - centerOf(targetCard);
                 x.set(Math.min(right, Math.max(left, start)));
             } else {
                 x.set(Math.min(right, Math.max(left, x.get())));
@@ -71,7 +74,7 @@ export default function useCenteredCarousel(initialIndex = 0) {
         const ro = new ResizeObserver(measure);
         ro.observe(viewport);
         return () => ro.disconnect();
-    }, [x, updateActiveCard, initialIndex]);
+    }, [x, updateActiveCard, initialIndex, itemCount]);
 
     // Ref callback factory for each card
     const setCardRef = useCallback(
