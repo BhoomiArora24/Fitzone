@@ -1,18 +1,38 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   User,
   Ticket,
   Settings,
   LogOut,
+  LogIn,
+  UserPlus,
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ProfileDropdown({ isDarkTheme = false }) {
+  const { user, isAuthenticated, logout } = useAuth()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [membershipMode, setMembershipMode] = useState('member')
   const dropdownRef = useRef(null)
+
+  const handleSignOut = () => {
+    logout()
+    setIsOpen(false)
+    navigate('/')
+  }
+
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : 'AM'
 
   // Radio options representing membership / profile status
   const radioOptions = [
@@ -97,24 +117,53 @@ export default function ProfileDropdown({ isDarkTheme = false }) {
           className="absolute right-0 top-full z-50 mt-2.5 w-[320px] origin-top-right rounded-2xl border border-[#D5C9B7] bg-[#FAF7F2] p-4 text-[#191916] shadow-[0_20px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-all duration-200 animate-in fade-in slide-in-from-top-2 sm:w-[340px]"
         >
           {/* User Info Header */}
-          <div className="flex items-center gap-3 border-b border-[#D5C9B7]/80 pb-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#505A3B] to-[#3E472E] font-sans text-sm font-black text-white shadow">
-              AM
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-bold text-[#191916]">
-                  Alex Morgan
-                </p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#E3DACB] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#505A3B]">
-                  <ShieldCheck size={11} /> Pro
-                </span>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3 border-b border-[#D5C9B7]/80 pb-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#505A3B] to-[#3E472E] font-sans text-sm font-black text-white shadow">
+                {initials}
               </div>
-              <p className="truncate text-xs text-[#747167]">
-                alex.morgan@fitzone.com
-              </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-bold text-[#191916]">
+                    {user?.name || 'FitZone Athlete'}
+                  </p>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E3DACB] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#505A3B]">
+                    <ShieldCheck size={11} /> {user?.role === 'admin' ? 'Admin' : (user?.membershipStatus || 'Member')}
+                  </span>
+                </div>
+                <p className="truncate text-xs text-[#747167]">
+                  {user?.email}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="border-b border-[#D5C9B7]/80 pb-3.5 text-center">
+              <p className="text-sm font-bold text-[#191916]">
+                Welcome to <span className="text-[#505A3B]">FitZone</span>
+              </p>
+              <p className="mt-0.5 text-xs text-[#747167]">
+                Sign in to manage passes and workouts
+              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#505A3B] py-2 text-xs font-bold text-white transition-colors hover:bg-[#3E472E]"
+                >
+                  <LogIn size={13} />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#D5C9B7] bg-white py-2 text-xs font-bold text-[#191916] transition-colors hover:bg-[#F0EAE1]"
+                >
+                  <UserPlus size={13} />
+                  <span>Register</span>
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Radio Options Section */}
           <div className="mt-3.5">
@@ -210,16 +259,18 @@ export default function ProfileDropdown({ isDarkTheme = false }) {
           </div>
 
           {/* Sign Out Row */}
-          <div className="mt-2.5 border-t border-[#D5C9B7]/80 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#8B3A2B] transition-colors hover:bg-red-500/10"
-            >
-              <LogOut size={14} />
-              <span>Sign Out</span>
-            </button>
-          </div>
+          {isAuthenticated && (
+            <div className="mt-2.5 border-t border-[#D5C9B7]/80 pt-2">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#8B3A2B] transition-colors hover:bg-red-500/10"
+              >
+                <LogOut size={14} />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

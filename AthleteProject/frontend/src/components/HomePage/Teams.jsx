@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ArrowRight,
   ChevronRight,
   Trophy,
 } from 'lucide-react'
+import { clubApi } from '../../api'
 
-const teams = [
+const initialTeams = [
   {
     sport: 'Strength',
     name: 'Barbell Club',
@@ -153,19 +154,62 @@ function TeamCard({ team }) {
 }
 
 export default function Teams() {
+  const [teamList, setTeamList] = useState(initialTeams)
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const visibleTeams = teams.map(
-    (_, index) => teams[(index + activeIndex) % teams.length]
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchClubs = async () => {
+      try {
+        const res = await clubApi.getAll()
+        if (!isMounted) return
+
+        const clubs = res?.data || (Array.isArray(res) ? res : [])
+        if (Array.isArray(clubs) && clubs.length > 0) {
+          const formatted = clubs.map((c, idx) => ({
+            sport: c.sport || 'Strength',
+            name: c.name,
+            ageGroup: c.intensity || 'All Levels',
+            coach: c.coach || 'Head Coach',
+            achievements: c.membersCount || (idx + 1) * 35,
+            image:
+              c.image ||
+              'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85',
+            avatar:
+              c.avatar ||
+              `https://i.pravatar.cc/80?img=${(idx % 60) + 12}`,
+          }))
+          setTeamList(formatted)
+        }
+      } catch (error) {
+        console.warn(
+          '[FitZone] Unable to fetch clubs from API, displaying default squads:',
+          error.message
+        )
+      }
+    }
+
+    fetchClubs()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const safeList = teamList.length > 0 ? teamList : initialTeams
+
+  const visibleTeams = safeList.map(
+    (_, index) => safeList[(index + activeIndex) % safeList.length]
   )
 
   const moveNext = () => {
-    setActiveIndex((current) => (current + 1) % teams.length)
+    setActiveIndex((current) => (current + 1) % safeList.length)
   }
 
   const movePrevious = () => {
     setActiveIndex(
-      (current) => (current - 1 + teams.length) % teams.length
+      (current) => (current - 1 + safeList.length) % safeList.length
     )
   }
 
@@ -234,7 +278,7 @@ export default function Teams() {
           </a>
 
           <span className="text-[9px] tracking-[0.12em] text-[#777163]">
-            {String(activeIndex + 1).padStart(2, '0')} / {String(teams.length).padStart(2, '0')}
+            {String(activeIndex + 1).padStart(2, '0')} / {String(safeList.length).padStart(2, '0')}
           </span>
 
           <div className="ml-auto flex items-center gap-2">

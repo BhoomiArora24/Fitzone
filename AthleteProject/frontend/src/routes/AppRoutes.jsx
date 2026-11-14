@@ -5,6 +5,8 @@ import AboutPage from '../pages/AboutPage'
 import ProgramsPage from '../pages/ProgramsPage'
 import ContactPage from '../pages/ContactPage'
 import FreePassPage from '../pages/FreePassPage'
+import LoginPage from '../pages/LoginPage'
+import RegisterPage from '../pages/RegisterPage'
 import NotFoundPage from '../pages/NotFoundPage'
 
 export default function AppRoutes() {
@@ -26,6 +28,10 @@ export default function AppRoutes() {
         {/* Free Workout Pass page */}
         <Route path="free-pass" element={<FreePassPage />} />
         <Route path="claim-pass" element={<FreePassPage />} />
+
+        {/* Authentication Pages */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
 
         {/* 404 catch-all route */}
         <Route path="*" element={<NotFoundPage />} />
