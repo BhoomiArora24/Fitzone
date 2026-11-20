@@ -103,12 +103,18 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Logout handler
-  const logout = useCallback(() => {
-    setToken(null)
-    setUser(null)
-    setAuthError(null)
-    localStorage.removeItem('fitzone_user_token')
-    localStorage.removeItem('fitzone_user_info')
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Ignore network errors during logout
+    } finally {
+      setToken(null)
+      setUser(null)
+      setAuthError(null)
+      localStorage.removeItem('fitzone_user_token')
+      localStorage.removeItem('fitzone_user_info')
+    }
   }, [])
 
   // Update profile handler

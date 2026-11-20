@@ -40,6 +40,31 @@ const clubSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    location: {
+      type: String,
+      default: 'Main Gym Floor - Zone A',
+    },
+    duration: {
+      type: String,
+      default: '60 Mins / Session',
+    },
+    targetAudience: {
+      type: String,
+      default: 'All Fitness Levels',
+    },
+    prerequisites: {
+      type: String,
+      default: 'Open to all gym members & pass holders',
+    },
+    perks: {
+      type: [String],
+      default: [
+        'Dedicated Coach Supervision',
+        'Progressive Overload Tracking',
+        'Form Correction & Video Feedback',
+        'Reserved Equipment Access',
+      ],
+    },
     image: {
       type: String,
       default: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85',

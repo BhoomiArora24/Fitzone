@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useLocation, Link } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { brand, nav, hero } from '../../data/siteContent'
 import ProfileDropdown from './ProfileDropdown'
+import { useAuth } from '../../context/AuthContext'
 
 /* ── Colour themes ─────────────────────────────────────────────
    Edit ONLY these two objects to restyle either state.
@@ -34,6 +35,7 @@ const theme = {
 }
 
 export default function Header() {
+  const { isAuthenticated, user, logout } = useAuth()
   const [open, setOpen] = useState(false)
   const [pastHero, setPastHero] = useState(false)
   const location = useLocation()
@@ -132,6 +134,37 @@ export default function Header() {
           >
             {hero.cta.label}
           </a>
+
+          {/* Mobile Auth action */}
+          {!isAuthenticated ? (
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="btn mt-2 justify-center border border-[#1B1C16]/20 bg-transparent text-[#1B1C16] hover:bg-black/5 md:hidden"
+            >
+              <LogIn size={14} className="mr-1.5" />
+              <span>Sign In</span>
+            </Link>
+          ) : (
+            <div className="mt-3 border-t border-black/10 pt-3 md:hidden">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-bold text-[#191916]">{user?.name}</p>
+                  <p className="truncate text-[10px] text-[#6D6A61]">{user?.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout()
+                    setOpen(false)
+                  }}
+                  className="rounded px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-red-700 bg-red-50 hover:bg-red-100"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -142,7 +175,22 @@ export default function Header() {
             {hero.cta.label}
           </a>
 
-          <ProfileDropdown isDarkTheme={t === theme.onDarkHero} />
+          {/* User state: Show ProfileDropdown if logged in, otherwise Show Sign In button */}
+          {isAuthenticated ? (
+            <ProfileDropdown isDarkTheme={t === theme.onDarkHero} />
+          ) : (
+            <Link
+              to="/login"
+              className={`inline-flex items-center gap-1.5 rounded-[3px] border px-4 py-2.5 text-[10px] font-bold uppercase tracking-[.1em] transition-all duration-200 ${
+                t === theme.onDarkHero
+                  ? 'border-white/30 text-[#F5F1E9] hover:bg-white/10 hover:border-white'
+                  : 'border-[#1B1C16]/25 text-[#1B1C16] hover:bg-black/5 hover:border-[#1B1C16]'
+              }`}
+            >
+              <LogIn size={13} />
+              <span>Sign In</span>
+            </Link>
+          )}
 
           <button
             className="p-1.5 md:hidden"

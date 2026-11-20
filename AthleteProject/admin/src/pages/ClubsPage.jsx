@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Search, RefreshCw } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  Search,
+  RefreshCw,
+  Eye,
+  Calendar,
+  Clock,
+  MapPin,
+  Flame,
+  CheckCircle2,
+  Users,
+  Target,
+  ShieldCheck,
+  X,
+} from 'lucide-react'
 import { clubApi } from '../api'
 import AddClubModal from '../components/modals/AddClubModal'
 
@@ -9,6 +24,7 @@ export default function ClubsPage() {
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [viewClub, setViewClub] = useState(null)
 
   const fetchClubs = async () => {
     setLoading(true)
@@ -193,11 +209,23 @@ export default function ClubsPage() {
                     </span>
                   </div>
 
-                  <p className="mt-1 text-xs text-[#514D43] leading-relaxed">
-                    {club.description}
+                  {/* Badges for Intensity & Location */}
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded bg-[#E3DACB] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#505A3B]">
+                      <Flame size={10} /> {club.intensity || 'High'}
+                    </span>
+                    {club.location && (
+                      <span className="inline-flex items-center gap-1 rounded bg-black/5 px-2 py-0.5 text-[9px] font-semibold text-[#514D43]">
+                        <MapPin size={10} /> {club.location}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-xs text-[#514D43] line-clamp-2 leading-relaxed">
+                    {club.description || 'No description provided.'}
                   </p>
 
-                  <div className="mt-4 space-y-2 border-t border-[#D5C9B7]/60 pt-3 text-xs">
+                  <div className="mt-3.5 space-y-1.5 border-t border-[#D5C9B7]/60 pt-3 text-xs">
                     <div className="flex items-center justify-between text-[#747167]">
                       <span className="font-semibold">Schedule:</span>
                       <span className="font-bold text-[#191916]">{club.schedule}</span>
@@ -209,7 +237,7 @@ export default function ClubsPage() {
                   </div>
 
                   {/* Capacity Progress Bar */}
-                  <div className="mt-4">
+                  <div className="mt-3.5">
                     <div className="flex items-center justify-between text-[11px] font-bold text-[#514D43]">
                       <span>Roster Capacity</span>
                       <span>
@@ -223,10 +251,166 @@ export default function ClubsPage() {
                       />
                     </div>
                   </div>
+
+                  {/* Action buttons */}
+                  <div className="mt-4 flex items-center gap-2 border-t border-[#D5C9B7]/60 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setViewClub(club)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#D5C9B7] bg-white py-2 text-xs font-bold text-[#191916] shadow-sm transition-colors hover:bg-[#505A3B] hover:text-white hover:border-[#505A3B]"
+                    >
+                      <Eye size={13} />
+                      <span>View Full Info</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(id)}
+                      className="rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                      title="Delete Club"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Admin Club Details Modal */}
+      {viewClub && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        >
+          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[#D5C9B7] bg-[#FAF7F2] p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setViewClub(null)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-[#514D43] hover:bg-black/10"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="relative h-48 w-full overflow-hidden rounded-xl bg-black/10 mb-5">
+              <img
+                src={viewClub.image}
+                alt={viewClub.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.src =
+                    'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85'
+                }}
+              />
+              <div className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                {viewClub.sport}
+              </div>
+              <div className="absolute right-3 top-3 rounded-full bg-[#505A3B] px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                {viewClub.intensity || 'High'} Intensity
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-sans text-2xl font-black uppercase text-[#191916]">
+                  {viewClub.name}
+                </h3>
+                <p className="mt-1 text-xs text-[#514D43] leading-relaxed">
+                  {viewClub.description || 'No description entered.'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs bg-[#EDE4D7]/50 rounded-xl p-3 border border-[#D5C9B7]">
+                <div>
+                  <span className="font-semibold text-[#747167]">Lead Trainer:</span>
+                  <p className="font-bold text-[#505A3B] mt-0.5">{viewClub.coach}</p>
+                </div>
+                <div>
+                  <span className="font-semibold text-[#747167]">Schedule:</span>
+                  <p className="font-bold text-[#191916] mt-0.5">{viewClub.schedule}</p>
+                </div>
+                <div>
+                  <span className="font-semibold text-[#747167]">Duration:</span>
+                  <p className="font-bold text-[#191916] mt-0.5">{viewClub.duration || '60 Mins'}</p>
+                </div>
+                <div>
+                  <span className="font-semibold text-[#747167]">Location / Zone:</span>
+                  <p className="font-bold text-[#191916] mt-0.5">{viewClub.location || 'Zone A'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="rounded-xl border border-[#D5C9B7] bg-white p-3">
+                  <span className="font-bold text-[#191916] block mb-1">Target Audience</span>
+                  <p className="text-[#514D43]">{viewClub.targetAudience || 'All Fitness Levels'}</p>
+                </div>
+                <div className="rounded-xl border border-[#D5C9B7] bg-white p-3">
+                  <span className="font-bold text-[#191916] block mb-1">Prerequisites</span>
+                  <p className="text-[#514D43]">{viewClub.prerequisites || 'Open to all gym members'}</p>
+                </div>
+              </div>
+
+              {viewClub.perks && viewClub.perks.length > 0 && (
+                <div>
+                  <span className="font-bold text-xs uppercase tracking-wider text-[#626A48] block mb-2">
+                    Squad Highlights &amp; Perks
+                  </span>
+                  <div className="space-y-1.5">
+                    {(Array.isArray(viewClub.perks)
+                      ? viewClub.perks
+                      : String(viewClub.perks).split(',')
+                    ).map((p, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-[#191916]">
+                        <CheckCircle2 size={13} className="text-[#505A3B] shrink-0" />
+                        <span>{p.trim()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-xl border border-[#D5C9B7] bg-white p-3 text-xs">
+                <div className="flex items-center justify-between font-bold text-[#191916] mb-1.5">
+                  <span>Enrolled Members</span>
+                  <span>{viewClub.membersCount || 0} / {viewClub.maxCapacity || 30}</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[#E3DACB]">
+                  <div
+                    className="h-full rounded-full bg-[#505A3B]"
+                    style={{
+                      width: `${Math.min(
+                        Math.round(((viewClub.membersCount || 0) / (viewClub.maxCapacity || 30)) * 100),
+                        100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#D5C9B7]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idToDelete = viewClub._id || viewClub.id
+                    setViewClub(null)
+                    handleDelete(idToDelete)
+                  }}
+                  className="rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                >
+                  Delete Club
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewClub(null)}
+                  className="rounded-xl bg-[#505A3B] px-5 py-2 text-xs font-bold text-white hover:bg-[#3E472E] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

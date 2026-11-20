@@ -5,6 +5,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import { clubApi } from '../../api'
+import ClubDetailsModal from './ClubDetailsModal'
 
 const initialTeams = [
   {
@@ -64,13 +65,14 @@ const initialTeams = [
   },
 ]
 
-function TeamCard({ team }) {
+function TeamCard({ team, onSelect }) {
   return (
-    <article className="group min-w-0 overflow-hidden border border-[#D8CDBB]/80 bg-[#F5EEE3] transition-all duration-300 hover:-translate-y-1 hover:border-[#777B60]">
+    <article
+      onClick={() => onSelect?.(team)}
+      className="group min-w-0 cursor-pointer overflow-hidden border border-[#D8CDBB]/80 bg-[#F5EEE3] transition-all duration-300 hover:-translate-y-1 hover:border-[#777B60] hover:shadow-lg"
+    >
       {/* Team photograph */}
-      <a
-        href={`/teams/${team.name.toLowerCase().replaceAll(' ', '-')}`}
-        aria-label={`Explore ${team.name}`}
+      <div
         className="relative block aspect-[1.6/1] overflow-hidden bg-[#D8D0C2]"
       >
         <img
@@ -85,11 +87,11 @@ function TeamCard({ team }) {
         <span className="absolute left-2 top-2.5 rounded-full bg-[#F4EDE2] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.09em] text-[#282820] sm:left-3 sm:top-3 sm:text-[9px]">
           {team.sport}
         </span>
-      </a>
+      </div>
 
       {/* Team details */}
       <div className="px-3 pb-3 pt-3 sm:px-3.5 sm:pt-3.5">
-        <h3 className="font-display text-[21px] font-bold uppercase leading-tight tracking-[0.02em] text-[#202019] sm:text-[23px]">
+        <h3 className="font-display text-[21px] font-bold uppercase leading-tight tracking-[0.02em] text-[#202019] sm:text-[23px] group-hover:text-[#505A3B] transition-colors">
           {team.name}
         </h3>
 
@@ -138,16 +140,20 @@ function TeamCard({ team }) {
 
         <div className="my-2.5 h-px bg-[#CFC4B2]" />
 
-        <a
-          href={`/teams/${team.name.toLowerCase().replaceAll(' ', '-')}`}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onSelect?.(team)
+          }}
           className="group/link inline-flex items-center gap-2 py-1 text-[9px] font-bold uppercase tracking-[0.06em] text-[#35372A] transition-colors hover:text-[#777B60]"
         >
-          Join Squad
+          View Squad Details
           <ArrowRight
             size={12}
             className="transition-transform duration-300 group-hover/link:translate-x-1"
           />
-        </a>
+        </button>
       </div>
     </article>
   )
@@ -156,6 +162,7 @@ function TeamCard({ team }) {
 export default function Teams() {
   const [teamList, setTeamList] = useState(initialTeams)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [selectedClub, setSelectedClub] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -168,11 +175,22 @@ export default function Teams() {
         const clubs = res?.data || (Array.isArray(res) ? res : [])
         if (Array.isArray(clubs) && clubs.length > 0) {
           const formatted = clubs.map((c, idx) => ({
+            id: c._id || c.id,
             sport: c.sport || 'Strength',
             name: c.name,
             ageGroup: c.intensity || 'All Levels',
             coach: c.coach || 'Head Coach',
             achievements: c.membersCount || (idx + 1) * 35,
+            membersCount: c.membersCount || 0,
+            maxCapacity: c.maxCapacity || 30,
+            intensity: c.intensity || 'High',
+            schedule: c.schedule || 'Mon / Wed / Fri · 6:30 PM',
+            duration: c.duration || '60 Mins',
+            location: c.location || 'Zone A · Power Rig',
+            targetAudience: c.targetAudience || 'All Fitness Levels',
+            prerequisites: c.prerequisites || 'Open to all gym members & pass holders',
+            perks: c.perks || [],
+            description: c.description || '',
             image:
               c.image ||
               'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85',
@@ -247,35 +265,41 @@ export default function Teams() {
               by elite trainers and a dedicated gym community.
             </p>
 
-            <a
-              href="/teams"
+            <button
+              type="button"
+              onClick={() => setSelectedClub(safeList[0])}
               className="group hidden shrink-0 items-center gap-3 border border-[#B8AD99] px-3.5 py-3 text-[8px] font-bold uppercase tracking-[0.06em] transition-colors hover:border-[#505A3B] hover:bg-[#505A3B] hover:text-white sm:inline-flex"
             >
-              Explore All Workout Clubs
+              Explore Squad Details
               <ArrowRight
                 size={13}
                 className="transition-transform group-hover:translate-x-1"
               />
-            </a>
+            </button>
           </div>
         </div>
 
         {/* Team cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-2.5">
           {visibleTeams.slice(0, 4).map((team) => (
-            <TeamCard key={team.name} team={team} />
+            <TeamCard
+              key={team.name}
+              team={team}
+              onSelect={(cl) => setSelectedClub(cl)}
+            />
           ))}
         </div>
 
         {/* Bottom controls */}
         <div className="mt-5 flex items-center justify-between">
-          <a
-            href="/teams"
+          <button
+            type="button"
+            onClick={() => setSelectedClub(safeList[0])}
             className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.08em] text-[#505A3B] sm:hidden"
           >
-            Explore All Workout Clubs
+            Explore Squad Details
             <ArrowRight size={13} />
-          </a>
+          </button>
 
           <span className="text-[9px] tracking-[0.12em] text-[#777163]">
             {String(activeIndex + 1).padStart(2, '0')} / {String(safeList.length).padStart(2, '0')}
@@ -302,6 +326,12 @@ export default function Teams() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Full Details Modal */}
+      <ClubDetailsModal
+        club={selectedClub}
+        onClose={() => setSelectedClub(null)}
+      />
     </section>
   )
 }

@@ -113,6 +113,37 @@ export const createClub = async (req, res, next) => {
         'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85'
     }
 
+    const {
+      name,
+      sport,
+      coach,
+      schedule,
+      maxCapacity,
+      intensity,
+      description,
+      location,
+      duration,
+      targetAudience,
+      prerequisites,
+      perks,
+    } = req.body
+
+    let parsedPerks = []
+    if (Array.isArray(perks)) {
+      parsedPerks = perks.filter(Boolean)
+    } else if (typeof perks === 'string' && perks.trim()) {
+      parsedPerks = perks.split(',').map((p) => p.trim()).filter(Boolean)
+    }
+
+    if (parsedPerks.length === 0) {
+      parsedPerks = [
+        'Dedicated Coach Supervision',
+        'Progressive Overload Tracking',
+        'Form Correction & Video Feedback',
+        'Reserved Equipment Access',
+      ]
+    }
+
     const newClub = await Club.create({
       name: name.trim(),
       sport: sport.trim(),
@@ -121,6 +152,11 @@ export const createClub = async (req, res, next) => {
       maxCapacity: maxCapacity ? Number(maxCapacity) : 30,
       intensity: intensity || 'High',
       description: description || '',
+      location: location?.trim() || 'Main Gym Floor - Zone A',
+      duration: duration?.trim() || '60 Mins / Session',
+      targetAudience: targetAudience?.trim() || 'All Fitness Levels',
+      prerequisites: prerequisites?.trim() || 'Open to all gym members & pass holders',
+      perks: parsedPerks,
       image,
     })
 
@@ -134,6 +170,10 @@ export const createClub = async (req, res, next) => {
 export const updateClub = async (req, res, next) => {
   try {
     const updateData = { ...req.body }
+
+    if (updateData.perks && typeof updateData.perks === 'string') {
+      updateData.perks = updateData.perks.split(',').map((p) => p.trim()).filter(Boolean)
+    }
 
     if (req.file) {
       const uploadRes = await uploadBufferToCloudinary(

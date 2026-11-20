@@ -152,3 +152,7 @@ export const updateProfile = async (req, res) => {
   }
 }
 
+export const logout = async (req, res) => {
+  return sendSuccess(res, null, 'Logged out successfully')
+}
+

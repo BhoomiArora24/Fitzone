@@ -1,0 +1,7 @@
+{
+  "watch": ["src", ".env", "server.js"],
+  "ext": "js,mjs,json,env",
+  "ignore": ["node_modules", "package-lock.json"],
+  "legacyWatch": true,
+  "delay": 300
+}

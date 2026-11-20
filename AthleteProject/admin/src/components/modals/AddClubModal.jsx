@@ -15,6 +15,11 @@ export default function AddClubModal({ isOpen, onClose, onClubAdded }) {
     schedule: '',
     maxCapacity: 30,
     intensity: 'High',
+    location: 'Main Gym Floor - Zone A',
+    duration: '60 Mins / Session',
+    targetAudience: 'All Fitness Levels',
+    prerequisites: 'Open to all gym members & pass holders',
+    perks: 'Dedicated Coach Supervision, Progressive Overload Tracking, Video Biomechanics Feedback, Reserved Racks',
     description: '',
     image: '',
   }
@@ -74,6 +79,13 @@ export default function AddClubModal({ isOpen, onClose, onClubAdded }) {
       schedule: formData.schedule.trim(),
       maxCapacity: Number(formData.maxCapacity) || 30,
       intensity: formData.intensity || 'High',
+      location: formData.location.trim() || 'Main Gym Floor - Zone A',
+      duration: formData.duration.trim() || '60 Mins / Session',
+      targetAudience: formData.targetAudience.trim() || 'All Fitness Levels',
+      prerequisites: formData.prerequisites.trim() || 'Open to all gym members & pass holders',
+      perks: formData.perks
+        ? formData.perks.split(',').map((p) => p.trim()).filter(Boolean)
+        : [],
       description: formData.description.trim() || '',
       image:
         formData.image.trim() ||
@@ -272,15 +284,99 @@ export default function AddClubModal({ isOpen, onClose, onClubAdded }) {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+                Training Location / Zone
+              </label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="e.g. Zone A · Olympic Rig"
+                className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+                Session Duration
+              </label>
+              <input
+                type="text"
+                value={formData.duration}
+                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                placeholder="e.g. 60 Mins"
+                className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+                Intensity Level
+              </label>
+              <select
+                value={formData.intensity}
+                onChange={(e) => setFormData({ ...formData, intensity: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+              >
+                <option value="Moderate">Moderate</option>
+                <option value="High">High</option>
+                <option value="Extreme">Extreme</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+                Target Audience
+              </label>
+              <input
+                type="text"
+                value={formData.targetAudience}
+                onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                placeholder="e.g. Intermediate to Advanced Lifters"
+                className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+                Prerequisites
+              </label>
+              <input
+                type="text"
+                value={formData.prerequisites}
+                onChange={(e) => setFormData({ ...formData, prerequisites: e.target.value })}
+                placeholder="e.g. Open to all members"
+                className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
-              Brief Description
+              Squad Highlights &amp; Perks (comma separated)
+            </label>
+            <input
+              type="text"
+              value={formData.perks}
+              onChange={(e) => setFormData({ ...formData, perks: e.target.value })}
+              placeholder="e.g. Coach supervision, Video feedback, Reserved racks"
+              className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#191916]">
+              Full Description
             </label>
             <textarea
-              rows={2}
+              rows={3}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Squad description, training focus..."
+              placeholder="Squad description, coaching methodology, target goals..."
               className="mt-1 w-full rounded-lg border border-[#D5C9B7] bg-white px-3 py-2 text-xs text-[#191916] focus:border-[#505A3B] focus:outline-none"
             />
           </div>
