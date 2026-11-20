@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { Club } from '../models/Club.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
 import {
@@ -67,10 +68,35 @@ export const getClubs = async (req, res, next) => {
 // GET /api/clubs/:id
 export const getClubById = async (req, res, next) => {
   try {
-    const club = await Club.findById(req.params.id)
+    const { id } = req.params
+    let club = null
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      club = await Club.findById(id)
+    }
+
     if (!club) {
+      // Find by slug or case-insensitive name
+      const cleanName = id.replace(/-/g, ' ')
+      club = await Club.findOne({
+        name: { $regex: new RegExp(`^${cleanName}$`, 'i') },
+      })
+    }
+
+    if (!club) {
+      // Fallback search inside defaultClubs by name or slug
+      const cleanLower = id.replace(/-/g, ' ').toLowerCase()
+      const fallback = defaultClubs.find(
+        (c) =>
+          c.name.toLowerCase() === cleanLower ||
+          c.name.toLowerCase().replace(/ /g, '-') === id.toLowerCase()
+      )
+      if (fallback) {
+        return sendSuccess(res, fallback, 'Club retrieved successfully')
+      }
       return sendError(res, 'Club not found', 404)
     }
+
     return sendSuccess(res, club, 'Club retrieved successfully')
   } catch (error) {
     next(error)

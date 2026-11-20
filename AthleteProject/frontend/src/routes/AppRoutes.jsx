@@ -7,6 +7,7 @@ import ContactPage from '../pages/ContactPage'
 import FreePassPage from '../pages/FreePassPage'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
+import ClubDetailPage from '../pages/ClubDetailPage'
 import NotFoundPage from '../pages/NotFoundPage'
 
 export default function AppRoutes() {
@@ -28,6 +29,10 @@ export default function AppRoutes() {
         {/* Free Workout Pass page */}
         <Route path="free-pass" element={<FreePassPage />} />
         <Route path="claim-pass" element={<FreePassPage />} />
+
+        {/* Club Details Dedicated Page (Both /clubs/:id and /teams/:id) */}
+        <Route path="clubs/:id" element={<ClubDetailPage />} />
+        <Route path="teams/:id" element={<ClubDetailPage />} />
 
         {/* Authentication Pages */}
         <Route path="login" element={<LoginPage />} />

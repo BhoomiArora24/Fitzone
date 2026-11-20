@@ -276,3 +276,4 @@ export default function ClubDetailsModal({ club, onClose }) {
     </AnimatePresence>
   )
 }
+

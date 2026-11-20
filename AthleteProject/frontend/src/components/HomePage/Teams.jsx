@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   ChevronRight,
   Trophy,
 } from 'lucide-react'
 import { clubApi } from '../../api'
-import ClubDetailsModal from './ClubDetailsModal'
 
 const initialTeams = [
   {
@@ -65,14 +65,17 @@ const initialTeams = [
   },
 ]
 
-function TeamCard({ team, onSelect }) {
+function TeamCard({ team }) {
+  const targetUrl = `/clubs/${team.id || team._id || team.name.toLowerCase().replaceAll(' ', '-')}`
+
   return (
     <article
-      onClick={() => onSelect?.(team)}
-      className="group min-w-0 cursor-pointer overflow-hidden border border-[#D8CDBB]/80 bg-[#F5EEE3] transition-all duration-300 hover:-translate-y-1 hover:border-[#777B60] hover:shadow-lg"
+      className="group min-w-0 overflow-hidden border border-[#D8CDBB]/80 bg-[#F5EEE3] transition-all duration-300 hover:-translate-y-1 hover:border-[#777B60] hover:shadow-lg"
     >
       {/* Team photograph */}
-      <div
+      <Link
+        to={targetUrl}
+        aria-label={`Explore ${team.name}`}
         className="relative block aspect-[1.6/1] overflow-hidden bg-[#D8D0C2]"
       >
         <img
@@ -87,13 +90,15 @@ function TeamCard({ team, onSelect }) {
         <span className="absolute left-2 top-2.5 rounded-full bg-[#F4EDE2] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.09em] text-[#282820] sm:left-3 sm:top-3 sm:text-[9px]">
           {team.sport}
         </span>
-      </div>
+      </Link>
 
       {/* Team details */}
       <div className="px-3 pb-3 pt-3 sm:px-3.5 sm:pt-3.5">
-        <h3 className="font-display text-[21px] font-bold uppercase leading-tight tracking-[0.02em] text-[#202019] sm:text-[23px] group-hover:text-[#505A3B] transition-colors">
-          {team.name}
-        </h3>
+        <Link to={targetUrl} className="block">
+          <h3 className="font-display text-[21px] font-bold uppercase leading-tight tracking-[0.02em] text-[#202019] sm:text-[23px] group-hover:text-[#505A3B] transition-colors">
+            {team.name}
+          </h3>
+        </Link>
 
         <p className="mt-1.5 text-[10px] text-[#716B5F] sm:text-[11px]">
           Training Level: {team.ageGroup}
@@ -140,20 +145,16 @@ function TeamCard({ team, onSelect }) {
 
         <div className="my-2.5 h-px bg-[#CFC4B2]" />
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onSelect?.(team)
-          }}
+        <Link
+          to={targetUrl}
           className="group/link inline-flex items-center gap-2 py-1 text-[9px] font-bold uppercase tracking-[0.06em] text-[#35372A] transition-colors hover:text-[#777B60]"
         >
-          View Squad Details
+          Explore Squad Page
           <ArrowRight
             size={12}
             className="transition-transform duration-300 group-hover/link:translate-x-1"
           />
-        </button>
+        </Link>
       </div>
     </article>
   )
@@ -162,7 +163,6 @@ function TeamCard({ team, onSelect }) {
 export default function Teams() {
   const [teamList, setTeamList] = useState(initialTeams)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [selectedClub, setSelectedClub] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -265,41 +265,35 @@ export default function Teams() {
               by elite trainers and a dedicated gym community.
             </p>
 
-            <button
-              type="button"
-              onClick={() => setSelectedClub(safeList[0])}
+            <Link
+              to={`/clubs/${safeList[0]?.id || safeList[0]?._id || 'barbell-club'}`}
               className="group hidden shrink-0 items-center gap-3 border border-[#B8AD99] px-3.5 py-3 text-[8px] font-bold uppercase tracking-[0.06em] transition-colors hover:border-[#505A3B] hover:bg-[#505A3B] hover:text-white sm:inline-flex"
             >
-              Explore Squad Details
+              Explore Squad Pages
               <ArrowRight
                 size={13}
                 className="transition-transform group-hover:translate-x-1"
               />
-            </button>
+            </Link>
           </div>
         </div>
 
         {/* Team cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-2.5">
           {visibleTeams.slice(0, 4).map((team) => (
-            <TeamCard
-              key={team.name}
-              team={team}
-              onSelect={(cl) => setSelectedClub(cl)}
-            />
+            <TeamCard key={team.name} team={team} />
           ))}
         </div>
 
         {/* Bottom controls */}
         <div className="mt-5 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => setSelectedClub(safeList[0])}
+          <Link
+            to={`/clubs/${safeList[0]?.id || safeList[0]?._id || 'barbell-club'}`}
             className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.08em] text-[#505A3B] sm:hidden"
           >
-            Explore Squad Details
+            Explore Squad Pages
             <ArrowRight size={13} />
-          </button>
+          </Link>
 
           <span className="text-[9px] tracking-[0.12em] text-[#777163]">
             {String(activeIndex + 1).padStart(2, '0')} / {String(safeList.length).padStart(2, '0')}
@@ -326,12 +320,6 @@ export default function Teams() {
           </div>
         </div>
       </div>
-
-      {/* Interactive Full Details Modal */}
-      <ClubDetailsModal
-        club={selectedClub}
-        onClose={() => setSelectedClub(null)}
-      />
     </section>
   )
 }
