@@ -126,7 +126,7 @@ export default function ClubDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#EDE4D7] flex items-center justify-center py-24 w-full">
+      <div className="min-h-screen bg-[#EDE4D7] flex items-center justify-center pt-28 pb-24 w-full">
         <div className="flex flex-col items-center gap-3 text-[#505A3B]">
           <RefreshCw size={32} className="animate-spin" />
           <p className="font-sans text-xs font-bold uppercase tracking-widest text-[#747167]">
@@ -139,7 +139,7 @@ export default function ClubDetailPage() {
 
   if (error || !club) {
     return (
-      <div className="min-h-[75vh] bg-[#EDE4D7] flex flex-col items-center justify-center px-4 py-20 text-center w-full">
+      <div className="min-h-screen bg-[#EDE4D7] flex flex-col items-center justify-center px-4 pt-28 pb-20 text-center w-full">
         <h1 className="font-display text-3xl sm:text-4xl font-bold uppercase text-[#191916]">
           Workout Squad Not Found
         </h1>
@@ -158,7 +158,7 @@ export default function ClubDetailPage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#EDE4D7] text-[#191916] pb-24 overflow-x-hidden selection:bg-[#505A3B] selection:text-white">
+    <div className="relative min-h-screen w-full bg-[#EDE4D7] text-[#191916] pt-20 sm:pt-24 lg:pt-28 pb-24 overflow-x-hidden selection:bg-[#505A3B] selection:text-white">
       {/* Background subtle paper ambient tone */}
       <div
         aria-hidden="true"
@@ -166,7 +166,7 @@ export default function ClubDetailPage() {
       />
 
       {/* Top Full-Width Navigation Breadcrumb */}
-      <div className="relative z-20 w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 max-w-[1700px] mx-auto pt-6 pb-3">
+      <div className="relative z-20 w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 max-w-[1700px] mx-auto pt-2 pb-4">
         <button
           type="button"
           onClick={() => navigate(-1)}

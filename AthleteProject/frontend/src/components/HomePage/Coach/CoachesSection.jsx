@@ -55,7 +55,7 @@ export default function CoachesSection() {
     }, []);
 
     return (
-        <section id="coaches" className="relative overflow-x-clip bg-cream text-stone-900">
+        <section id="coaches" className="relative overflow-x-clip bg-cream text-stone-900 scroll-mt-20">
             <div className="flex min-h-screen flex-col justify-center overflow-hidden py-16 sm:py-20">
                 {/* Decorative background details */}
                 <div

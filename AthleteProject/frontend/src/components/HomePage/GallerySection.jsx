@@ -101,7 +101,7 @@ export default function GallerySection() {
     return (
         <section
             id="gallery"
-            className="overflow-hidden bg-[#22241A] py-5 text-white sm:py-10"
+            className="overflow-hidden bg-[#22241A] py-5 text-white sm:py-10 scroll-mt-20"
         >
             <div className="mx-auto mb-12 max-w-4xl px-5 text-center sm:mb-16">
 

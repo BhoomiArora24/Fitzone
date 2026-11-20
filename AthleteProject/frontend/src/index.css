@@ -5,7 +5,7 @@
 
 
 :root { --pad: clamp(20px, 4.2vw, 64px); }
-html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 html, body { overflow-x: clip; }
 body { @apply font-body bg-ivory text-ink antialiased overflow-x-hidden; }
 :focus-visible { outline: 2px solid #B66E56; outline-offset: 3px; }

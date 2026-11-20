@@ -48,7 +48,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-[85vh] bg-[#EDE4D7] px-4 py-16 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="relative min-h-screen bg-[#EDE4D7] px-4 pt-24 pb-16 sm:pt-28 sm:pb-20 lg:pt-32 sm:px-6 lg:px-8 flex items-center justify-center">
       {/* Background ambient gradient */}
       <div
         aria-hidden="true"

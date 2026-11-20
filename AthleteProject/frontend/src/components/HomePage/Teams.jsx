@@ -234,7 +234,7 @@ export default function Teams() {
   return (
     <section
       id="teams"
-      className="relative overflow-hidden bg-[#EDE4D7] py-12 text-[#191916] sm:py-16 lg:py-[72px]"
+      className="relative overflow-hidden bg-[#EDE4D7] py-12 text-[#191916] sm:py-16 lg:py-[72px] scroll-mt-20"
     >
       {/* Subtle architectural background texture */}
       <div

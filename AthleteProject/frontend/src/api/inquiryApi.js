@@ -7,3 +7,4 @@ export const inquiryApi = {
 }
 
 export default inquiryApi
+
