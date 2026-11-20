@@ -44,6 +44,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    clubMembershipStatus: {
+      type: String,
+      enum: ['Inactive', 'Pending', 'Active'],
+      default: 'Inactive',
+    },
+    freePassStatus: {
+      type: String,
+      enum: ['Not Claimed', 'Claimed', 'Used'],
+      default: 'Not Claimed',
+    },
+    freePassCode: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

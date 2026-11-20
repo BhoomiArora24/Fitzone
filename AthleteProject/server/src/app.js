@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
+import userRoutes from './routes/userRoutes.js'
 import trainerRoutes from './routes/trainerRoutes.js'
 import memberRoutes from './routes/memberRoutes.js'
 import clubRoutes from './routes/clubRoutes.js'
@@ -63,6 +64,7 @@ app.get('/api/health', (req, res) => {
 
 // Core API Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/users', userRoutes)
 app.use('/api/trainers', trainerRoutes)
 app.use('/api/members', memberRoutes)
 app.use('/api/clubs', clubRoutes)

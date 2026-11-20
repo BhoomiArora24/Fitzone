@@ -4,6 +4,7 @@ import AdminLayout from '../components/layout/AdminLayout'
 
 // Code-split pages for faster initial load
 const OverviewPage = lazy(() => import('../pages/OverviewPage'))
+const UsersPage = lazy(() => import('../pages/UsersPage'))
 const TrainersPage = lazy(() => import('../pages/TrainersPage'))
 const MembersPage = lazy(() => import('../pages/MembersPage'))
 const ClubsPage = lazy(() => import('../pages/ClubsPage'))
@@ -32,6 +33,14 @@ export default function AppRoutes() {
           element={
             <Suspense fallback={<PageFallback />}>
               <OverviewPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/users"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <UsersPage />
             </Suspense>
           }
         />

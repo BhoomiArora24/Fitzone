@@ -134,6 +134,23 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Refresh user profile from database
+  const refreshUser = useCallback(async () => {
+    if (!token) return null
+    try {
+      const res = await authApi.getMe()
+      const userData = res?.data?.user || res?.user
+      if (userData) {
+        setUser(userData)
+        localStorage.setItem('fitzone_user_info', JSON.stringify(userData))
+        return userData
+      }
+    } catch (err) {
+      console.warn('[FitZone Auth] Failed to refresh user profile:', err.message)
+    }
+    return null
+  }, [token])
+
   return (
     <AuthContext.Provider
       value={{
@@ -146,6 +163,7 @@ export function AuthProvider({ children }) {
         register,
         logout,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}

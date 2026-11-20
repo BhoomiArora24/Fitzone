@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Users, Dumbbell, Flame, Ticket, RefreshCw } from 'lucide-react'
-import { trainerApi, clubApi } from '../api'
+import { trainerApi, clubApi, userApi } from '../api'
 
 export default function OverviewPage() {
   const [trainers, setTrainers] = useState([])
   const [clubs, setClubs] = useState([])
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -13,9 +14,10 @@ export default function OverviewPage() {
 
     const loadData = async () => {
       try {
-        const [trainersRes, clubsRes] = await Promise.allSettled([
+        const [trainersRes, clubsRes, usersRes] = await Promise.allSettled([
           trainerApi.getAll(),
           clubApi.getAll(),
+          userApi.getAll(),
         ])
 
         if (!isMounted) return
@@ -28,6 +30,11 @@ export default function OverviewPage() {
         if (clubsRes.status === 'fulfilled') {
           const data = clubsRes.value?.data || (Array.isArray(clubsRes.value) ? clubsRes.value : [])
           setClubs(data.map((c) => ({ ...c, id: c._id || c.id })))
+        }
+
+        if (usersRes.status === 'fulfilled') {
+          const data = usersRes.value?.data || (Array.isArray(usersRes.value) ? usersRes.value : [])
+          setUsers(data.map((u) => ({ ...u, id: u._id || u.id })))
         }
       } catch {
         // network error
@@ -59,17 +66,17 @@ export default function OverviewPage() {
         <div className="rounded-2xl border border-[#D5C9B7] bg-[#FAF7F2] p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#747167]">
-              Registered Members
+              Registered Accounts
             </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#505A3B]/10 text-[#505A3B]">
               <Users size={16} />
             </div>
           </div>
           <p className="mt-3 font-sans text-3xl font-black text-[#191916]">
-            1,540
+            {loading ? '...' : users.length}
           </p>
           <p className="mt-1 text-[11px] font-semibold text-emerald-700">
-            Database synchronized
+            {users.filter((u) => u.clubMembershipStatus === 'Active').length} Active Club Members
           </p>
         </div>
 

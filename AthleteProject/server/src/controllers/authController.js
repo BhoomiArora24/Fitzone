@@ -47,6 +47,9 @@ export const register = async (req, res) => {
           avatar: user.avatar,
           membershipStatus: user.membershipStatus,
           joinedClub: user.joinedClub,
+          clubMembershipStatus: user.clubMembershipStatus || 'Inactive',
+          freePassStatus: user.freePassStatus || 'Not Claimed',
+          freePassCode: user.freePassCode || '',
           createdAt: user.createdAt,
         },
         token,
@@ -91,6 +94,9 @@ export const login = async (req, res) => {
           avatar: user.avatar,
           membershipStatus: user.membershipStatus,
           joinedClub: user.joinedClub,
+          clubMembershipStatus: user.clubMembershipStatus || 'Inactive',
+          freePassStatus: user.freePassStatus || 'Not Claimed',
+          freePassCode: user.freePassCode || '',
           createdAt: user.createdAt,
         },
         token,
@@ -116,7 +122,15 @@ export const getMe = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, avatar, joinedClub } = req.body
+    const {
+      name,
+      phone,
+      avatar,
+      joinedClub,
+      clubMembershipStatus,
+      freePassStatus,
+      freePassCode,
+    } = req.body
 
     const user = await User.findById(req.user._id)
     if (!user) {
@@ -126,7 +140,24 @@ export const updateProfile = async (req, res) => {
     if (name) user.name = name
     if (phone !== undefined) user.phone = phone
     if (avatar) user.avatar = avatar
-    if (joinedClub !== undefined) user.joinedClub = joinedClub
+    if (joinedClub !== undefined) {
+      user.joinedClub = joinedClub
+      // When a user requests to join a club, it starts as 'Pending' until admin activates it
+      if (joinedClub && (!user.clubMembershipStatus || user.clubMembershipStatus === 'Inactive')) {
+        user.clubMembershipStatus = 'Pending'
+      } else if (!joinedClub) {
+        user.clubMembershipStatus = 'Inactive'
+      }
+    }
+    if (clubMembershipStatus && (req.user.role === 'admin' || clubMembershipStatus === 'Pending')) {
+      user.clubMembershipStatus = clubMembershipStatus
+    }
+    if (freePassStatus !== undefined) {
+      user.freePassStatus = freePassStatus
+    }
+    if (freePassCode !== undefined) {
+      user.freePassCode = freePassCode
+    }
 
     const updatedUser = await user.save()
 
@@ -142,6 +173,9 @@ export const updateProfile = async (req, res) => {
           avatar: updatedUser.avatar,
           membershipStatus: updatedUser.membershipStatus,
           joinedClub: updatedUser.joinedClub,
+          clubMembershipStatus: updatedUser.clubMembershipStatus || 'Inactive',
+          freePassStatus: updatedUser.freePassStatus || 'Not Claimed',
+          freePassCode: updatedUser.freePassCode || '',
           updatedAt: updatedUser.updatedAt,
         },
       },

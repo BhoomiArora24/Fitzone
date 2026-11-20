@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Search, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Plus, Trash2, Search, RefreshCw, ArrowRight } from 'lucide-react'
 import { memberApi } from '../api'
 import AddMemberModal from '../components/modals/AddMemberModal'
 
@@ -60,10 +61,10 @@ export default function MembersPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-sans text-2xl font-black uppercase tracking-tight text-[#191916] sm:text-3xl">
-            Available Members &amp; Users
+            Gym Members Roster
           </h1>
           <p className="mt-1 text-xs text-[#747167]">
-            Direct database records of registered members, pass holders, and assigned coaches.
+            Direct database records of gym members, pass holders, and assigned coaches.
           </p>
         </div>
 
@@ -101,6 +102,23 @@ export default function MembersPage() {
             <span>Add Member</span>
           </button>
         </div>
+      </div>
+
+      {/* Switcher Banner to MongoDB Registered Users */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[#505A3B]/30 bg-[#505A3B]/10 p-4 text-xs text-[#191916]">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-2.5 w-2.5 rounded-full bg-[#505A3B] shrink-0" />
+          <span>
+            Looking for real registered accounts from the website? Manage their active club status and free pass redemption directly.
+          </span>
+        </div>
+        <Link
+          to="/users"
+          className="inline-flex items-center gap-1.5 shrink-0 rounded-xl bg-[#505A3B] px-3.5 py-2 font-bold uppercase tracking-wider text-white hover:bg-[#3E472E] transition-colors"
+        >
+          <span>Manage Registered Users</span>
+          <ArrowRight size={14} />
+        </Link>
       </div>
 
       {/* Loading state */}

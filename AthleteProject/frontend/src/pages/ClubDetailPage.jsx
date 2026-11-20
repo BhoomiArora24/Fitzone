@@ -15,6 +15,7 @@ import {
   Target,
   Send,
   Check,
+  Clock,
 } from 'lucide-react'
 import { clubApi } from '../api/clubApi'
 import { inquiryApi } from '../api/inquiryApi'
@@ -83,9 +84,11 @@ export default function ClubDetailPage() {
     }
   }, [user])
 
-  // Check if current authenticated user is already enrolled in this club
+  // Check if current authenticated user is enrolled and their active state
   const isUserEnrolled =
     Boolean(user?.joinedClub && club?.name && user.joinedClub.toLowerCase() === club.name.toLowerCase())
+  const isClubActive = isUserEnrolled && user?.clubMembershipStatus === 'Active'
+  const isClubPending = isUserEnrolled && user?.clubMembershipStatus === 'Pending'
 
   // Handle Join Club Opt-in Submission
   const handleJoinClub = async (e) => {
@@ -95,10 +98,15 @@ export default function ClubDetailPage() {
 
     try {
       if (isAuthenticated) {
-        // Logged in user: update their profile with the joined club
-        await updateProfile({ joinedClub: club.name })
+        // Logged in user: submit request to join club (starts as Pending until activated by admin)
+        await updateProfile({
+          joinedClub: club.name,
+          clubMembershipStatus: 'Pending',
+        })
         setJoinSuccess(true)
-        setJoinMessage(`Congratulations! You are now officially enrolled in ${club.name}.`)
+        setJoinMessage(
+          `Enrollment request submitted for ${club.name}! Your status will show as Active once approved by gym admin.`
+        )
       } else {
         // Non-logged in user: submit enrollment opt-in via inquiry API
         if (!joinForm.name.trim() || !joinForm.email.trim()) {
@@ -115,7 +123,9 @@ export default function ClubDetailPage() {
         })
 
         setJoinSuccess(true)
-        setJoinMessage(`Welcome! Your enrollment request for ${club.name} has been confirmed. Our team will reach out shortly.`)
+        setJoinMessage(
+          `Welcome! Your enrollment inquiry for ${club.name} has been received. Create an account to track your membership!`
+        )
       }
     } catch (err) {
       setJoinMessage(err.message || 'Unable to complete enrollment. Please try again.')
@@ -479,7 +489,7 @@ export default function ClubDetailPage() {
             <div className="lg:col-span-6">
               <div className="rounded-2xl border border-[#D5C9B7] bg-[#EDE4D7]/70 p-6 sm:p-8 shadow-sm">
                 {isAuthenticated ? (
-                  /* Authenticated User: One-Click Quick Join */
+                  /* Authenticated User: One-Click Quick Join or Status Card */
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#505A3B] text-white font-bold text-sm">
@@ -491,30 +501,55 @@ export default function ClubDetailPage() {
                       </div>
                     </div>
 
-                    <p className="text-xs text-[#514D43] leading-relaxed">
-                      You are signed in. Click below to add <strong>{club.name}</strong> to your member profile.
-                    </p>
+                    {isClubActive ? (
+                      <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-emerald-950">
+                        <div className="flex items-center gap-2 font-bold text-sm">
+                          <CheckCircle2 className="text-emerald-600 shrink-0" size={18} />
+                          <span>Active Club Member</span>
+                          <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[9px] font-bold uppercase text-white">
+                            Active
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-emerald-800 leading-relaxed">
+                          Your membership in {club.name} is verified and active. You have full access to squad sessions, coaching, and workout programming.
+                        </p>
+                      </div>
+                    ) : isClubPending ? (
+                      <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+                        <div className="flex items-center gap-2 font-bold text-sm">
+                          <Clock className="text-amber-600 shrink-0" size={18} />
+                          <span>Enrollment Pending Admin Approval</span>
+                          <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold uppercase text-white animate-pulse">
+                            Pending
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-amber-800 leading-relaxed">
+                          Your enrollment request for {club.name} has been submitted. The gym admin will activate your membership in the admin panel.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-xs text-[#514D43] leading-relaxed">
+                          You are signed in. Click below to request joining <strong>{club.name}</strong>. An admin will activate your membership upon review.
+                        </p>
 
-                    <button
-                      type="button"
-                      disabled={joining || isUserEnrolled}
-                      onClick={handleJoinClub}
-                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#505A3B] py-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md transition-all hover:bg-[#3E472E] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {joining ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      ) : isUserEnrolled ? (
-                        <>
-                          <Check size={16} />
-                          <span>Already Enrolled</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Confirm Club Enrollment</span>
-                          <ArrowRight size={14} />
-                        </>
-                      )}
-                    </button>
+                        <button
+                          type="button"
+                          disabled={joining}
+                          onClick={handleJoinClub}
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#505A3B] py-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md transition-all hover:bg-[#3E472E] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {joining ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          ) : (
+                            <>
+                              <span>Join {club.name} Squad</span>
+                              <ArrowRight size={14} />
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   /* Guest User: Fast Opt-in Form */

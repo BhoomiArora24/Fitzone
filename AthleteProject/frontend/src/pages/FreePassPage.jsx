@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
@@ -8,21 +8,75 @@ import {
   X,
   Check,
   Sparkles,
+  Ticket,
+  Flame,
 } from 'lucide-react'
 import { freePassData } from '../data/freePassData'
+import { useAuth } from '../context/AuthContext'
+import { inquiryApi } from '../api/inquiryApi'
 
 export default function FreePassPage() {
+  const { user, isAuthenticated, updateProfile, refreshUser } = useAuth()
   const [modalOpen, setModalOpen] = useState(false)
   const [claimed, setClaimed] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
   })
 
-  const handleClaim = (e) => {
+  // Sync latest user status from DB
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser?.()
+    }
+  }, [isAuthenticated, refreshUser])
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+      }))
+    }
+  }, [user])
+
+  const isPassUsed = user?.freePassStatus === 'Used'
+  const isPassClaimed = user?.freePassStatus === 'Claimed'
+
+  const handleClaim = async (e) => {
     e.preventDefault()
-    setClaimed(true)
+    setSubmitting(true)
+
+    const passCode = user?.freePassCode || `FZ-PASS-${Math.floor(1000 + Math.random() * 9000)}`
+
+    try {
+      // 1. Create Inquiry record in MongoDB
+      await inquiryApi.create({
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        type: 'Free Pass Claim',
+        code: passCode,
+        message: `1x Complimentary Personal Training Session voucher generated (Phone: ${formData.phone || 'N/A'}).`,
+      })
+
+      // 2. If user is logged in, persist to their user profile
+      if (isAuthenticated) {
+        await updateProfile({
+          freePassStatus: 'Claimed',
+          freePassCode: passCode,
+        })
+      }
+
+      setClaimed(true)
+    } catch (err) {
+      alert(err.message || 'Failed to claim workout pass. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleDownload = () => {
@@ -127,6 +181,17 @@ export default function FreePassPage() {
                     <QrCode size={36} strokeWidth={1.8} />
                   </div>
                 </div>
+
+                {/* Live Status Stamp */}
+                {isPassUsed ? (
+                  <div className="mt-4 rounded-lg bg-rose-600/90 text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider text-center">
+                    Pass Status: Used &bull; Redeemed
+                  </div>
+                ) : isPassClaimed ? (
+                  <div className="mt-4 rounded-lg bg-blue-600/90 text-white px-3 py-1.5 text-xs font-black uppercase tracking-wider text-center">
+                    Pass Status: Claimed &bull; Ready to Redeem
+                  </div>
+                ) : null}
               </div>
 
               {/* Motto Footer inside Dark Card */}
@@ -139,22 +204,70 @@ export default function FreePassPage() {
 
         {/* ── Bottom CTA Section ─────────────────────────────────────── */}
         <div className="mt-10 sm:mt-12">
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="group flex w-full items-center justify-center gap-3 rounded-xl bg-[#4B5536] px-6 py-4 text-center text-[14px] font-black uppercase tracking-wider text-white shadow-md transition-all duration-300 hover:bg-[#3B432B] hover:shadow-lg active:scale-[0.99] sm:py-5 sm:text-[16px]"
-          >
-            <Download
-              size={20}
-              strokeWidth={2.4}
-              className="transition-transform group-hover:translate-y-0.5"
-            />
-            {freePassData.cta.buttonText}
-          </button>
+          {isPassUsed ? (
+            <div className="rounded-2xl border border-stone-300 bg-stone-100 p-6 text-center space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-stone-200 px-3 py-1 text-xs font-bold uppercase tracking-wider text-stone-800">
+                <Check size={14} strokeWidth={2.5} />
+                <span>Pass Status: Used (Redeemed)</span>
+              </div>
+              <h3 className="font-sans text-xl sm:text-2xl font-black uppercase text-[#191916]">
+                You have already redeemed your complimentary pass!
+              </h3>
+              <p className="max-w-md mx-auto text-xs sm:text-sm text-[#747167]">
+                This pass has been verified and marked as used by the gym admin. Ready to take your training further? Explore our athletic squads!
+              </p>
+              <Link
+                to="/#teams"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#505A3B] px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow hover:bg-[#3E472E] transition-all"
+              >
+                <Flame size={16} />
+                <span>Explore Training Clubs &amp; Squads</span>
+              </Link>
+            </div>
+          ) : isPassClaimed ? (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-6 text-center space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-800 border border-blue-300">
+                <Ticket size={14} />
+                <span>Active Pass Voucher: {user?.freePassCode || 'FZ-PASS-2026'}</span>
+              </div>
+              <h3 className="font-sans text-xl sm:text-2xl font-black uppercase text-[#191916]">
+                Your Pass is Active &amp; Ready
+              </h3>
+              <p className="max-w-md mx-auto text-xs sm:text-sm text-[#514D43]">
+                Present this voucher at the front desk when you visit. The admin will verify and redeem your pass upon check-in.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setClaimed(true)
+                  setModalOpen(true)
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow hover:bg-blue-800 transition-all"
+              >
+                <Download size={16} />
+                <span>View &amp; Print Pass Voucher</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="group flex w-full items-center justify-center gap-3 rounded-xl bg-[#4B5536] px-6 py-4 text-center text-[14px] font-black uppercase tracking-wider text-white shadow-md transition-all duration-300 hover:bg-[#3B432B] hover:shadow-lg active:scale-[0.99] sm:py-5 sm:text-[16px]"
+              >
+                <Download
+                  size={20}
+                  strokeWidth={2.4}
+                  className="transition-transform group-hover:translate-y-0.5"
+                />
+                {freePassData.cta.buttonText}
+              </button>
 
-          <p className="mt-3 text-center text-[12px] text-[#747167] sm:text-[13px]">
-            {freePassData.cta.finePrint}
-          </p>
+              <p className="mt-3 text-center text-[12px] text-[#747167] sm:text-[13px]">
+                {freePassData.cta.finePrint}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -195,7 +308,7 @@ export default function FreePassPage() {
                 <div className="mt-6 rounded-xl border border-[#D5C9B7] bg-[#F4EFE6] p-5 text-left text-[#191916]">
                   <div className="flex items-center justify-between text-xs text-[#747167]">
                     <span className="font-bold uppercase tracking-wider">Pass Code</span>
-                    <span className="font-mono font-bold text-[#505A3B]">FZ-PASS-2026</span>
+                    <span className="font-mono font-bold text-[#505A3B]">{user?.freePassCode || 'FZ-PASS-2026'}</span>
                   </div>
                   <p className="mt-2 font-sans text-xl font-black text-[#191916]">
                     {formData.name || 'FitZone Guest'}
@@ -285,9 +398,10 @@ export default function FreePassPage() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full rounded-xl bg-[#505A3B] py-3.5 text-xs font-black uppercase tracking-wider text-white shadow transition-all hover:bg-[#3E472E]"
+                      disabled={submitting}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#505A3B] py-3.5 text-xs font-black uppercase tracking-wider text-white shadow transition-all hover:bg-[#3E472E] disabled:opacity-60"
                     >
-                      Generate Free Pass Now
+                      {submitting ? 'Generating Pass...' : 'Generate Free Pass Now'}
                     </button>
                     <p className="mt-2 text-center text-[11px] text-[#747167]">
                       No credit card required. 100% free workout pass.

@@ -9,15 +9,25 @@ import {
   UserPlus,
   ChevronDown,
   ShieldCheck,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Flame,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 export default function ProfileDropdown({ isDarkTheme = false }) {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
-  const [membershipMode, setMembershipMode] = useState('member')
   const dropdownRef = useRef(null)
+
+  // Re-fetch latest user status from database whenever dropdown is opened
+  useEffect(() => {
+    if (isOpen && isAuthenticated) {
+      refreshUser?.()
+    }
+  }, [isOpen, isAuthenticated, refreshUser])
 
   const handleSignOut = () => {
     logout()
@@ -34,21 +44,13 @@ export default function ProfileDropdown({ isDarkTheme = false }) {
         .toUpperCase()
     : 'AM'
 
-  // Radio options representing membership / profile status
-  const radioOptions = [
-    {
-      id: 'member',
-      label: 'Club Member',
-      description: 'Full floor & locker access',
-      badge: 'Active',
-    },
-    {
-      id: 'pass',
-      label: 'Free Pass Holder',
-      description: '1 complimentary session',
-      badge: 'Guest',
-    },
-  ]
+  // Dynamic calculations according to live DB state
+  const isClubActive = user?.clubMembershipStatus === 'Active'
+  const isClubPending = user?.clubMembershipStatus === 'Pending'
+  const hasClub = Boolean(user?.joinedClub)
+
+  const isPassUsed = user?.freePassStatus === 'Used'
+  const isPassClaimed = user?.freePassStatus === 'Claimed'
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -165,67 +167,126 @@ export default function ProfileDropdown({ isDarkTheme = false }) {
             </div>
           )}
 
-          {/* Radio Options Section */}
-          <div className="mt-3.5">
-            <div className="mb-2 flex items-center justify-between">
+          {/* Live Membership & Pass Status Section */}
+          <div className="mt-3.5 space-y-2">
+            <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#626A48]">
-                Membership Mode
+                Member &amp; Pass Status
               </span>
-              <span className="text-[10px] text-[#8A8B70]">Select active tier</span>
+              <span className="text-[9px] text-[#8A8B70]">Live sync</span>
             </div>
 
-            <div className="space-y-1.5" role="radiogroup" aria-label="Membership Status Options">
-              {radioOptions.map((option) => {
-                const isSelected = membershipMode === option.id
-                return (
-                  <label
-                    key={option.id}
-                    onClick={() => setMembershipMode(option.id)}
-                    className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 transition-all duration-200 cursor-pointer select-none ${
-                      isSelected
-                        ? 'border-[#505A3B] bg-[#505A3B]/10 shadow-[0_2px_8px_rgba(80,90,59,0.12)]'
-                        : 'border-transparent hover:border-[#D5C9B7] hover:bg-black/[0.03]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* Custom Radio Button Indicator */}
-                      <div
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all duration-200 ${
-                          isSelected
-                            ? 'border-[#505A3B] bg-white ring-2 ring-[#505A3B]/30'
-                            : 'border-[#96937D] bg-transparent'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="h-2 w-2 rounded-full bg-[#505A3B]" />
-                        )}
-                      </div>
+            {/* 1. Club Membership Card */}
+            <div
+              onClick={() => {
+                setIsOpen(false)
+                if (hasClub) {
+                  navigate(`/clubs/${user.joinedClub.toLowerCase().replaceAll(' ', '-')}`)
+                } else {
+                  navigate('/#teams')
+                }
+              }}
+              className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 transition-all cursor-pointer ${
+                isClubActive
+                  ? 'border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 shadow-sm'
+                  : isClubPending
+                  ? 'border-amber-300 bg-amber-50/70 hover:bg-amber-100/70'
+                  : 'border-[#D5C9B7] bg-white/60 hover:bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                    isClubActive
+                      ? 'bg-emerald-600 text-white'
+                      : isClubPending
+                      ? 'bg-amber-500 text-white'
+                      : 'bg-stone-200 text-stone-600'
+                  }`}
+                >
+                  <Flame size={14} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="truncate text-[12px] font-bold text-[#191916]">
+                    {hasClub ? user.joinedClub : 'Training Club'}
+                  </span>
+                  <span className="text-[10px] text-[#747167]">
+                    {isClubActive
+                      ? 'Verified active member'
+                      : isClubPending
+                      ? 'Awaiting admin approval'
+                      : hasClub
+                      ? 'Membership inactive'
+                      : 'Click to explore squads'}
+                  </span>
+                </div>
+              </div>
 
-                      {/* Text */}
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-bold leading-tight text-[#191916]">
-                          {option.label}
-                        </span>
-                        <span className="text-[11px] text-[#747167]">
-                          {option.description}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Badge */}
-                    <span
-                      className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                        isSelected
-                          ? 'bg-[#505A3B] text-white'
-                          : 'bg-[#E3DACB] text-[#514D43]'
-                      }`}
-                    >
-                      {option.badge}
-                    </span>
-                  </label>
-                )
-              })}
+              {/* Status Badge */}
+              <span
+                className={`shrink-0 rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                  isClubActive
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : isClubPending
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300 animate-pulse'
+                    : 'bg-[#E3DACB] text-[#514D43]'
+                }`}
+              >
+                {isClubActive ? 'Active' : isClubPending ? 'Pending' : hasClub ? 'Inactive' : 'Not Joined'}
+              </span>
             </div>
+
+            {/* 2. Free Pass Card */}
+            <Link
+              to="/free-pass"
+              onClick={() => setIsOpen(false)}
+              className={`flex items-center justify-between gap-3 rounded-xl border p-2.5 transition-all ${
+                isPassUsed
+                  ? 'border-stone-300 bg-stone-100/80 hover:bg-stone-200/80'
+                  : isPassClaimed
+                  ? 'border-blue-300 bg-blue-50/70 hover:bg-blue-100/70'
+                  : 'border-[#D5C9B7] bg-white/60 hover:bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                    isPassUsed
+                      ? 'bg-stone-600 text-white'
+                      : isPassClaimed
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-[#505A3B] text-white'
+                  }`}
+                >
+                  <Ticket size={14} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="truncate text-[12px] font-bold text-[#191916]">
+                    Free Workout Pass
+                  </span>
+                  <span className="text-[10px] text-[#747167]">
+                    {isPassUsed
+                      ? 'Redeemed at front desk'
+                      : isPassClaimed
+                      ? `Voucher: ${user?.freePassCode || 'FZ-PASS-2026'}`
+                      : '1 complimentary session'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Pass Badge */}
+              <span
+                className={`shrink-0 rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                  isPassUsed
+                    ? 'bg-rose-100 text-rose-800 border border-rose-300 font-bold'
+                    : isPassClaimed
+                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                }`}
+              >
+                {isPassUsed ? 'Used' : isPassClaimed ? 'Claimed' : 'Available'}
+              </span>
+            </Link>
           </div>
 
           {/* Quick Action Links */}

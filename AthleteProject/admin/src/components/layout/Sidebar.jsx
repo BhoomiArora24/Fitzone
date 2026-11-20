@@ -17,6 +17,11 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }) {
       icon: TrendingUp,
     },
     {
+      to: '/users',
+      label: 'Registered Users',
+      icon: Users,
+    },
+    {
       to: '/trainers',
       label: 'Trainers & Coaches',
       icon: Dumbbell,
@@ -24,7 +29,7 @@ export default function Sidebar({ mobileMenuOpen, setMobileMenuOpen }) {
     {
       to: '/members',
       label: 'Available Members',
-      icon: Users,
+      icon: ShieldCheck,
     },
     {
       to: '/clubs',
