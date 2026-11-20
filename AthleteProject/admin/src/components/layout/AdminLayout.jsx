@@ -7,14 +7,14 @@ export default function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#EDE4D7] text-[#191916]">
+    <div className="flex min-h-screen flex-col bg-[#EDE4D7] text-[#191916]">
       {/* Top Header */}
       <Header
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
       />
 
-      <div className="flex">
+      <div className="flex flex-1 items-stretch">
         {/* Sidebar Navigation */}
         <Sidebar
           mobileMenuOpen={mobileMenuOpen}
@@ -22,7 +22,7 @@ export default function AdminLayout() {
         />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-5 sm:p-8 lg:p-10">
+        <main className="flex-1 p-5 sm:p-8 lg:p-10 min-w-0">
           <Outlet />
         </main>
       </div>

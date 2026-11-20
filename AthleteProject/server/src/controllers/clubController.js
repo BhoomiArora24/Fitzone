@@ -106,7 +106,20 @@ export const getClubById = async (req, res, next) => {
 // POST /api/clubs
 export const createClub = async (req, res, next) => {
   try {
-    const { name, sport, coach, schedule, maxCapacity, intensity, description } = req.body
+    const {
+      name,
+      sport,
+      coach,
+      schedule,
+      maxCapacity,
+      intensity,
+      description,
+      location,
+      duration,
+      targetAudience,
+      prerequisites,
+      perks,
+    } = req.body
     let image = req.body.image
 
     if (!name || !sport || !coach || !schedule) {
@@ -138,21 +151,6 @@ export const createClub = async (req, res, next) => {
       image =
         'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=85'
     }
-
-    const {
-      name,
-      sport,
-      coach,
-      schedule,
-      maxCapacity,
-      intensity,
-      description,
-      location,
-      duration,
-      targetAudience,
-      prerequisites,
-      perks,
-    } = req.body
 
     let parsedPerks = []
     if (Array.isArray(perks)) {

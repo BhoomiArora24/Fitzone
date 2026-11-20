@@ -28,7 +28,7 @@ const inquirySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Unclaimed', 'Responded', 'Pending', 'Closed'],
+      enum: ['Unclaimed', 'Claimed', 'Used', 'Responded', 'Pending', 'Closed'],
       default: 'Pending',
     },
   },

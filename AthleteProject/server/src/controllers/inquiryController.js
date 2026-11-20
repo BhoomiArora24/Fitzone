@@ -1,39 +1,11 @@
 import { Inquiry } from '../models/Inquiry.js'
+import { User } from '../models/User.js'
 import { sendSuccess, sendError } from '../utils/apiResponse.js'
-
-const defaultInquiries = [
-  {
-    name: 'Alex Morgan',
-    email: 'alex.fitness@fitzone.com',
-    type: 'Free Pass Claim',
-    code: 'FZ-PASS-2026',
-    message: '1x Complimentary Personal Training Session voucher generated.',
-    status: 'Unclaimed',
-  },
-  {
-    name: 'Sophie Clark',
-    email: 'sophie.c@example.com',
-    type: 'General Inquiry',
-    code: 'INQ-9421',
-    message: 'Inquiring about 1-on-1 nutritional guidance and evening powerlifting squad timings.',
-    status: 'Responded',
-  },
-]
 
 // GET /api/inquiries
 export const getInquiries = async (req, res, next) => {
   try {
-    let inquiries = []
-    try {
-      inquiries = await Inquiry.find().sort({ createdAt: -1 })
-    } catch {
-      inquiries = defaultInquiries
-    }
-
-    if (!inquiries || inquiries.length === 0) {
-      inquiries = defaultInquiries
-    }
-
+    const inquiries = await Inquiry.find().sort({ createdAt: -1 })
     return sendSuccess(res, inquiries, 'Inquiries retrieved successfully')
   } catch (error) {
     next(error)
@@ -49,14 +21,27 @@ export const createInquiry = async (req, res, next) => {
       return sendError(res, 'Name and email are required', 400)
     }
 
+    const initialStatus = type === 'Free Pass Claim' ? 'Claimed' : 'Pending'
     const newInquiry = await Inquiry.create({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
       type: type || 'General Inquiry',
       code: code || `FZ-${Math.floor(1000 + Math.random() * 9000)}`,
       message: message || '',
-      status: 'Pending',
+      status: initialStatus,
     })
+
+    // If it is a Free Pass Claim, sync to registered user if one exists
+    if (type === 'Free Pass Claim') {
+      try {
+        await User.findOneAndUpdate(
+          { email: email.trim().toLowerCase() },
+          { freePassStatus: 'Claimed', freePassCode: newInquiry.code }
+        )
+      } catch {
+        // User may be guest
+      }
+    }
 
     return sendSuccess(res, newInquiry, 'Inquiry submitted successfully', 201)
   } catch (error) {
@@ -78,7 +63,37 @@ export const updateInquiryStatus = async (req, res, next) => {
       return sendError(res, 'Inquiry not found', 404)
     }
 
+    // Sync Free Pass status to User collection if applicable
+    if (updated.type === 'Free Pass Claim' && (status === 'Used' || status === 'Claimed')) {
+      try {
+        await User.findOneAndUpdate(
+          {
+            $or: [
+              { email: updated.email.toLowerCase() },
+              { freePassCode: updated.code },
+            ],
+          },
+          { freePassStatus: status }
+        )
+      } catch (err) {
+        console.warn('Syncing pass status to user failed:', err.message)
+      }
+    }
+
     return sendSuccess(res, updated, 'Inquiry status updated successfully')
+  } catch (error) {
+    next(error)
+  }
+}
+
+// DELETE /api/inquiries/:id
+export const deleteInquiry = async (req, res, next) => {
+  try {
+    const deleted = await Inquiry.findByIdAndDelete(req.params.id)
+    if (!deleted) {
+      return sendError(res, 'Inquiry not found', 404)
+    }
+    return sendSuccess(res, { id: req.params.id }, 'Inquiry deleted successfully')
   } catch (error) {
     next(error)
   }
