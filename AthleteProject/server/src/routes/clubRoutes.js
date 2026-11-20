@@ -17,6 +17,7 @@ router.route('/')
 router.route('/:id')
   .get(getClubById)
   .put(upload.single('image'), updateClub)
+  .patch(upload.single('image'), updateClub)
   .delete(deleteClub)
 
 export default router

@@ -199,6 +199,10 @@ export const updateClub = async (req, res, next) => {
       updateData.perks = updateData.perks.split(',').map((p) => p.trim()).filter(Boolean)
     }
 
+    if (updateData.maxCapacity) {
+      updateData.maxCapacity = Number(updateData.maxCapacity)
+    }
+
     if (req.file) {
       const uploadRes = await uploadBufferToCloudinary(
         req.file.buffer,
@@ -221,10 +225,22 @@ export const updateClub = async (req, res, next) => {
       }
     }
 
-    const updated = await Club.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: true,
-    })
+    let updated = null
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      updated = await Club.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+        runValidators: true,
+      })
+    }
+
+    if (!updated) {
+      const cleanName = req.params.id.replace(/-/g, ' ')
+      updated = await Club.findOneAndUpdate(
+        { name: { $regex: new RegExp(`^${cleanName}$`, 'i') } },
+        updateData,
+        { new: true, runValidators: true }
+      )
+    }
 
     if (!updated) {
       return sendError(res, 'Club not found', 404)

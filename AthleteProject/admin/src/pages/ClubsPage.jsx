@@ -14,9 +14,11 @@ import {
   Target,
   ShieldCheck,
   X,
+  Pencil,
 } from 'lucide-react'
 import { clubApi } from '../api'
 import AddClubModal from '../components/modals/AddClubModal'
+import EditClubModal from '../components/modals/EditClubModal'
 
 export default function ClubsPage() {
   const [clubs, setClubs] = useState([])
@@ -24,6 +26,7 @@ export default function ClubsPage() {
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingClub, setEditingClub] = useState(null)
   const [viewClub, setViewClub] = useState(null)
 
   const fetchClubs = async () => {
@@ -59,6 +62,18 @@ export default function ClubsPage() {
 
   const handleClubAdded = (newClub) => {
     setClubs((prev) => [{ ...newClub, id: newClub._id || newClub.id }, ...prev])
+  }
+
+  const handleClubUpdated = (updatedClub) => {
+    const updatedId = updatedClub._id || updatedClub.id
+    setClubs((prev) =>
+      prev.map((c) =>
+        (c._id || c.id) === updatedId ? { ...c, ...updatedClub, id: updatedId } : c
+      )
+    )
+    if (viewClub && ((viewClub._id || viewClub.id) === updatedId)) {
+      setViewClub((prev) => ({ ...prev, ...updatedClub, id: updatedId }))
+    }
   }
 
   const filteredClubs = clubs.filter((c) => {
@@ -260,7 +275,16 @@ export default function ClubsPage() {
                       className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#D5C9B7] bg-white py-2 text-xs font-bold text-[#191916] shadow-sm transition-colors hover:bg-[#505A3B] hover:text-white hover:border-[#505A3B]"
                     >
                       <Eye size={13} />
-                      <span>View Full Info</span>
+                      <span>View</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingClub(club)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#D5C9B7] bg-white px-3 py-2 text-xs font-bold text-[#505A3B] shadow-sm transition-colors hover:bg-[#505A3B] hover:text-white hover:border-[#505A3B]"
+                      title="Edit Club"
+                    >
+                      <Pencil size={13} />
+                      <span>Edit</span>
                     </button>
                     <button
                       type="button"
@@ -403,6 +427,18 @@ export default function ClubsPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    const target = viewClub
+                    setViewClub(null)
+                    setEditingClub(target)
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#505A3B] bg-white px-4 py-2 text-xs font-bold text-[#505A3B] hover:bg-[#505A3B] hover:text-white transition-colors"
+                >
+                  <Pencil size={13} />
+                  <span>Edit Squad</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setViewClub(null)}
                   className="rounded-xl bg-[#505A3B] px-5 py-2 text-xs font-bold text-white hover:bg-[#3E472E] transition-colors"
                 >
@@ -414,11 +450,19 @@ export default function ClubsPage() {
         </div>
       )}
 
-      {/* Modal is mounted locally on this page */}
+      {/* Add Club Modal */}
       <AddClubModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onClubAdded={handleClubAdded}
+      />
+
+      {/* Edit Club Modal */}
+      <EditClubModal
+        isOpen={Boolean(editingClub)}
+        club={editingClub}
+        onClose={() => setEditingClub(null)}
+        onClubUpdated={handleClubUpdated}
       />
     </div>
   )
